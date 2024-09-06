@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사진 업로드 및 삭제</title>
+    <title><mungmmang's picture></title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            position: relative;
+            margin: 0;
+            padding: 0;
         }
 
         .upload-container {
@@ -66,26 +69,49 @@
             max-width: 80%;
             white-space: pre-wrap;
         }
+
+        /* 관리자 로그인 버튼 스타일 */
+        .login-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .admin-page {
+            display: none;
+        }
     </style>
 </head>
 <body>
+
+    <button class="login-button" onclick="showAdminLogin()">관리자 로그인</button>
 
     <div class="upload-container">
         <h1>사진 업로드</h1>
         <input type="file" id="imageInput" accept="image/*" multiple>
         <div id="imageGrid"></div>
     </div>
-    <h1>관리자 페이지</h1>
-    <input type="password" id="adminPassword" placeholder="관리자 비밀번호">
-    <button onclick="viewLogs()">IP 로그 보기</button>
-    <div id="logContainer"></div>
+
+    <div id="adminPage" class="admin-page">
+        <h1>관리자 페이지</h1>
+        <input type="password" id="adminPassword" placeholder="관리자 비밀번호">
+        <button onclick="viewLogs()">IP 로그 보기</button>
+        <div id="logContainer"></div>
+    </div>
 
     <script>
         const imageInput = document.getElementById('imageInput');
         const imageGrid = document.getElementById('imageGrid');
+        const adminPage = document.getElementById('adminPage');
+        const loginButton = document.querySelector('.login-button');
 
         // 관리자 여부 확인 (임시로 세션에 저장된 정보로 확인)
-        const isAdmin = true;  // 이 값을 서버에서 세션에 따라 동적으로 설정해야 함
+        let isAdmin = false;
 
         imageInput.addEventListener('change', function(event) {
             const files = event.target.files;
@@ -144,11 +170,17 @@
             });
         });
 
+        function showAdminLogin() {
+            // 관리자 로그인 페이지 표시
+            adminPage.style.display = 'block';
+        }
+
         function viewLogs() {
             const password = document.getElementById('adminPassword').value;
             const hardcodedPassword = 'ipon'; // 하드코딩된 비밀번호
 
             if (password === hardcodedPassword) {
+                isAdmin = true; // 로그인 성공 시 관리자 권한 부여
                 fetch(`/admin/ip-logs`)
                     .then(response => response.text())
                     .then(data => {
