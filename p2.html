@@ -3,131 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Upload and Delete</title>
+    <title>관리자 페이지</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
         }
-
-        .upload-container {
-            margin-top: 50px;
-        }
-
-        #imageGrid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+        input[type="password"] {
             margin-top: 20px;
         }
-
-        .image-item {
-            position: relative;
-        }
-
-        .image-item img {
-            max-width: 100%;
-            height: auto;
-            border: 1px solid #ddd;
-        }
-
-        .delete-button {
-            margin-top: 5px;
-            background-color: red;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
-        .download-link {
-            display: block;
-            margin-top: 5px;
-            text-decoration: none;
-            color: #007bff;
-        }
-
-        .download-link:hover {
-            text-decoration: underline;
-        }
-
-        input[type="file"] {
+        button {
             margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        pre {
+            text-align: left;
+            margin: 20px auto;
+            max-width: 80%;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
-
-    <div class="upload-container">
-        <h1>사진 업로드</h1>
-        <input type="file" id="imageInput" accept="image/*" multiple>
-        <div id="imageGrid"></div>
-    </div>
+    <h1>관리자 페이지</h1>
+    <input type="password" id="adminPassword" placeholder="관리자 비밀번호">
+    <button onclick="viewLogs()">IP 로그 보기</button>
+    <div id="logContainer"></div>
 
     <script>
-        const imageInput = document.getElementById('imageInput');
-        const imageGrid = document.getElementById('imageGrid');
-
-        // 관리자 여부 확인 (임시로 세션에 저장된 정보로 확인)
-        const isAdmin = true;  // 이 값을 서버에서 세션에 따라 동적으로 설정해야 함
-
-        imageInput.addEventListener('change', function(event) {
-            const files = event.target.files;
-            imageGrid.innerHTML = '';  // 기존 이미지 초기화
-
-            Array.from(files).forEach(file => {
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-
-                    reader.onload = function(e) {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.classList.add('image-item');
-
-                        // 이미지 생성
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        imgContainer.appendChild(img);
-
-                        // 다운로드 링크 생성
-                        const downloadLink = document.createElement('a');
-                        downloadLink.href = e.target.result;
-                        downloadLink.download = file.name;
-                        downloadLink.classList.add('download-link');
-                        downloadLink.textContent = '다운로드';
-                        imgContainer.appendChild(downloadLink);
-
-                        // 삭제 버튼 (관리자일 때만 보임)
-                        if (isAdmin) {
-                            const deleteButton = document.createElement('button');
-                            deleteButton.textContent = '삭제';
-                            deleteButton.classList.add('delete-button');
-
-                            deleteButton.addEventListener('click', () => {
-                                // 서버로 이미지 삭제 요청 보내기
-                                fetch('/delete-image', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ imageUrl: e.target.result })
-                                })
-                                .then(response => response.text())
-                                .then(result => {
-                                    alert(result);
-                                    imgContainer.remove();  // 이미지 삭제 후 화면에서 제거
-                                })
-                                .catch(error => console.error('Error:', error));
-                            });
-
-                            imgContainer.appendChild(deleteButton);
-                        }
-
-                        imageGrid.appendChild(imgContainer);
-                    };
-
-                    reader.readAsDataURL(file);
-                }
-            });
-        });
+        function viewLogs() {
+            const password = document.getElementById('adminPassword').value;
+            fetch(`/admin/ip-logs?password=${password}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('logContainer').innerHTML = data;
+                })
+                .catch(error => console.error('Error:', error));
+        }
     </script>
-
 </body>
 </html>
